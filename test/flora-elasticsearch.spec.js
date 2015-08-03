@@ -62,7 +62,8 @@ describe('Flora Elasticsearch DataSource', function () {
                                 }
                             }
                         }
-                    }
+                    },
+                    "size": 1000000
                 }
             };
 
