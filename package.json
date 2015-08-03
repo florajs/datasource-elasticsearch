@@ -1,0 +1,48 @@
+{
+  "name": "flora-elasticsearch",
+  "version": "0.0.1",
+  "description": "Solr connection for Elasticsearch",
+  "main": "index.js",
+  "scripts": {
+    "test": "grunt test"
+  },
+  "author": {
+    "name": "BörseGo AG",
+    "email": "it@boerse-go.de"
+  },
+  "homepage": "https://github.com/godmodelabs/flora-elasticsearch",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/godmodelabs/flora-elasticsearch.git"
+  },
+  "contributors": [
+    {
+      "name": "Thorben Ziemek",
+      "email": "thorben.ziemek@boerse-go.de"
+    }
+  ],
+  "engines": {
+    "node": ">=0.10.0"
+  },
+  "dependencies": {
+    "elasticsearch": "^5.0.0",
+    "lodash": "^3.10.0"
+  },
+  "devDependencies": {
+    "chai": "^3.0.0",
+    "eslint": "0.24.x",
+    "grunt": "0.4.x",
+    "grunt-cli": "^0.1.13",
+    "grunt-contrib-clean": "0.6.x",
+    "grunt-eslint": "16.0.x",
+    "grunt-mocha-istanbul": "^2.4.0",
+    "grunt-mocha-test": "0.12.x",
+    "istanbul": "0.3.x",
+    "load-grunt-tasks": "^3.1.0",
+    "mocha": "2.2.x",
+    "mocha-bamboo-reporter": "*",
+    "nock": "2.7.x",
+    "when": "^3.7.3"
+  }
+}
