@@ -1,7 +1,7 @@
 {
   "name": "flora-elasticsearch",
   "version": "0.0.1",
-  "description": "Solr connection for Elasticsearch",
+  "description": "Elasticsearch connection for Elasticsearch",
   "main": "index.js",
   "scripts": {
     "test": "grunt test"

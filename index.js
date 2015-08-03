@@ -45,8 +45,11 @@ DataSource.prototype.process = function (request, callback) {
 };
 
 DataSource.prototype.createSearchConfig = function(request) {
-	var body = {query:{}};
-	if (request.filter) body.query.filtered = {filter:createFilter(request.filter)}; 
+	var body = {};
+	if (request.filter) {
+		body.query = {};
+		body.query.filtered = {filter:createFilter(request.filter)}; 
+	}
 	if (!request.limit) request.limit = 1000000;
     if (request.page) {
     	body.from = (request.page-1) * request.limit;
