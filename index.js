@@ -5,6 +5,23 @@ elasticsearch = require('elasticsearch'),
 esLogAdapter = require('./esLogAdapter'),
 _ = require('lodash');
 
+function flattenObjectKeys(obj) {
+    var result = {};
+
+    _.forEach(obj, function (value, key) {
+        if (_.isPlainObject(value)) {
+            var flat = flattenObjectKeys(value);
+            _.forEach(flat, function (v, subKey) {
+                result[key + '.' + subKey] = v;
+            });
+        } else {
+            result[key] = value;
+        }
+    });
+
+    return result;
+}
+
 var DataSource = module.exports = function (api, config) {
     // config: https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/configuration.html
     this.api = api;
@@ -21,7 +38,6 @@ DataSource.prototype.prepare = function () {};
 * @param {Function} callback
 */
 DataSource.prototype.process = function (request, callback) {
-    //this.api.log.info(request, "flora-elasticsearch processes req");
     var search = this.createSearchConfig(request);
     this.api.log.info(search, 'flora-elasticsearch created search request');
 
@@ -31,7 +47,8 @@ DataSource.prototype.process = function (request, callback) {
             if (!err && response && response.hits && response.hits.hits) {
                 var data = response.hits.hits.map(function (hit) {
                     hit._source._id = hit._id;
-                    return hit._source;
+                    /* XXX: API-769 */
+                    return flattenObjectKeys(hit._source);
                 });
 
                 result = {
@@ -59,7 +76,7 @@ DataSource.prototype.createSearchConfig = function (request) {
     var search = {};
     //search.fields = request.attributes;
     search.index = request.esindex;
-    search.type = request.estype;
+    if (request.estype) search.type = request.estype;
     if (body) search.body = body;
 
     return search;
