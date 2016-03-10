@@ -39,17 +39,43 @@ DataSource.prototype.prepare = function () {};
 */
 DataSource.prototype.process = function (request, callback) {
     var search = this.createSearchConfig(request);
-    this.api.log.info(search, 'flora-elasticsearch created search request');
+    var log = this.api.log;
+
+    log.debug(search, 'flora-elasticsearch created search request');
 
     this.client.search(search, function (err, response) {
+        if (request._explain) {
+            request._explain.elasticsearch = {
+                search: JSON.stringify(search),
+                took: response.took,
+                _shards: response._shards,
+                timed_out: response.timed_out
+            };
+        }
+
         if (callback) {
             var result = null;
             if (!err && response && response.hits && response.hits.hits) {
                 var data = response.hits.hits.map(function (hit) {
                     hit._source._id = hit._id;
+                    hit._source._type = hit._type;
+
                     /* XXX: API-769 */
                     return flattenObjectKeys(hit._source);
                 });
+
+                /*if (response.aggregations) {
+                    result = {
+                        data: {
+                            aggregations: response.aggregations,
+                            data: data
+                        }
+                    }
+                } else {
+                    result = {
+                        data: data
+                    };
+                } */
 
                 result = {
                     data: data
@@ -72,6 +98,13 @@ DataSource.prototype.createSearchConfig = function (request) {
         body.from = (request.page - 1) * request.limit;
     }
     body.size = request.limit;
+
+    /*if (request.search) {
+        var parsedSearchParameter = JSON.parse(request.search);
+        _.forEach(parsedSearchParameter, function (value, key) {
+            body[key] = value;
+        });
+    }*/
 
     var search = {};
     //search.fields = request.attributes;
