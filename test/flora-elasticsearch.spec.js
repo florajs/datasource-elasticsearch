@@ -69,6 +69,48 @@ describe('Flora Elasticsearch DataSource', function () {
 
             expect(search).to.deep.equal(expected);
         });
+
+        it('should convert an aliased agg', function() {
+            var search = dataSource.createSearchConfig({
+                esindex: 'prod',
+                estype: 'instrument',
+                limit: 0,
+
+                /* countByIssuer=count(limit:20,issuer.name) */
+                aggregateTest: [
+                   {
+                      "options": {
+                         "limit": "20"
+                      },
+                      "fields": [
+                         "issuer.name"
+                      ],
+                      "aggregate": [],
+                      "functionName": "count",
+                      "alias": "countByIssuer"
+                   }
+                ]
+            });
+
+            var expected = {
+                "body": {
+                  "aggs": {
+                    "countByIssuer": {
+                      "terms": {
+                        "field": "issuer.name",
+                        "size": 20
+                      }
+                    }
+                  },
+                  "size": 0
+                },
+                "index": "prod",
+                "search_type": "count",
+                "type": "instrument"
+            };
+
+            expect(search).to.deep.equal(expected);
+        })
     });
-    
+
 });

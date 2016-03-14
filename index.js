@@ -22,6 +22,40 @@ function flattenObjectKeys(obj) {
     return result;
 }
 
+function convertAggregate(aggregate) {
+    var aggregations = {};
+    aggregate.forEach(function(agg, key) {
+        if (!agg.alias) {
+            /* TODO: think about this. */
+            agg.alias = key;
+        }
+
+        var result = {};
+
+        if (agg.functionName === 'count') {
+            /* -> term aggregation */
+            if (!agg.fields || agg.fields.length != 1) {
+                console.log(agg);
+                throw new Error("Invalid count aggregation: requires exactly one field");
+            }
+
+            result.terms = {field:agg.fields[0]};
+            if (agg.options.limit) {
+                result.terms.size = parseInt(agg.options.limit);
+            }
+            if (agg.aggregate.length) {
+                result.terms.aggs = convertAggregate(agg.aggregate);
+            }
+        } else {
+            throw new Error("Unsupported aggregate function: " + agg.functionName);
+        }
+
+        aggregations[agg.alias] = result;
+    });
+
+    return aggregations;
+}
+
 var DataSource = module.exports = function (api, config) {
     // config: https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/configuration.html
     this.api = api;
@@ -93,7 +127,7 @@ DataSource.prototype.createSearchConfig = function (request) {
         body.query = {};
         body.query.filtered = {filter: createFilter(request.filter)};
     }
-    if (!request.limit) request.limit = 1000000;
+    if (!request.limit && typeof request.limit !== "number") request.limit = 1000000;
     if (request.page) {
         body.from = (request.page - 1) * request.limit;
     }
@@ -111,6 +145,15 @@ DataSource.prototype.createSearchConfig = function (request) {
     search.index = request.esindex;
     if (request.estype) search.type = request.estype;
     if (body) search.body = body;
+
+    if (request.aggregateTest) {
+        this.api.log.info({aggregateTest: request.aggregateTest}, "TODO: elasticsearch aggregations");
+        body.aggs = convertAggregate(request.aggregateTest);
+        if (!request.limit) {
+            body.size = 0;
+            search.search_type = "count";
+        }
+    }
 
     return search;
 };
