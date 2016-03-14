@@ -46,6 +46,12 @@ function convertAggregate(aggregate) {
             if (agg.aggregate.length) {
                 result.terms.aggs = convertAggregate(agg.aggregate);
             }
+        } else if (agg.functionName === 'max' || agg.functionName === 'min') {
+            if (!agg.fields || agg.fields.length != 1) {
+                throw new Error(`Invalid ${agg.functionName} aggregation: requires exactly one field`);
+            }
+
+            result[agg.functionName] = {field:agg.fields[0]};
         } else {
             throw new Error("Unsupported aggregate function: " + agg.functionName);
         }
@@ -54,6 +60,23 @@ function convertAggregate(aggregate) {
     });
 
     return aggregations;
+}
+
+function transformAggregateResponse(floraAggregate, elasticAggregations) {
+    var result = {};
+    floraAggregate.forEach(function(agg) {
+        var elasticAgg = elasticAggregations[agg.alias];
+        var r = null;
+        if (agg.functionName === 'count') {
+            r = elasticAgg.buckets;
+        } else if (agg.functionName === 'min' || agg.functionName === 'max') {
+            r = elasticAgg.value;
+        }
+
+        result[agg.alias] = r;
+    });
+
+    return result;
 }
 
 var DataSource = module.exports = function (api, config) {
@@ -112,8 +135,12 @@ DataSource.prototype.process = function (request, callback) {
                 } */
 
                 result = {
-                    data: data
+                    data: data,
                 };
+
+                if (response.aggregations) {
+                    result.aggregations = JSON.parse(JSON.stringify(transformAggregateResponse(request.aggregateTest, response.aggregations)));
+                }
             }
 
             callback(err, result);
