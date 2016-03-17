@@ -1,9 +1,9 @@
 'use strict';
 
 var
-elasticsearch = require('elasticsearch'),
-esLogAdapter = require('./esLogAdapter'),
-_ = require('lodash');
+    elasticsearch = require('elasticsearch'),
+    esLogAdapter = require('./esLogAdapter'),
+    _ = require('lodash');
 
 function flattenObjectKeys(obj) {
     var result = {};
@@ -24,7 +24,7 @@ function flattenObjectKeys(obj) {
 
 function convertAggregate(aggregate) {
     var aggregations = {};
-    aggregate.forEach(function(agg, key) {
+    aggregate.forEach(function (agg, key) {
         if (!agg.alias) {
             /* TODO: think about this. */
             agg.alias = key;
@@ -35,13 +35,13 @@ function convertAggregate(aggregate) {
         if (agg.functionName === 'count') {
             /* -> term aggregation */
             if (!agg.fields || agg.fields.length != 1) {
-                console.log(agg);
-                throw new Error("Invalid count aggregation: requires exactly one field");
+                // console.log(agg);
+                throw new Error('Invalid count aggregation: requires exactly one field');
             }
 
             result.terms = {field:agg.fields[0]};
             if (agg.options.limit) {
-                result.terms.size = parseInt(agg.options.limit);
+                result.terms.size = parseInt(agg.options.limit, 10);
             }
             if (agg.aggregate.length) {
                 result.terms.aggs = convertAggregate(agg.aggregate);
@@ -53,7 +53,7 @@ function convertAggregate(aggregate) {
 
             result[agg.functionName] = {field:agg.fields[0]};
         } else {
-            throw new Error("Unsupported aggregate function: " + agg.functionName);
+            throw new Error('Unsupported aggregate function: ' + agg.functionName);
         }
 
         aggregations[agg.alias] = result;
@@ -64,7 +64,7 @@ function convertAggregate(aggregate) {
 
 function transformAggregateResponse(floraAggregate, elasticAggregations) {
     var result = {};
-    floraAggregate.forEach(function(agg) {
+    floraAggregate.forEach(function (agg) {
         var elasticAgg = elasticAggregations[agg.alias];
         var r = null;
         if (agg.functionName === 'count') {
@@ -139,7 +139,11 @@ DataSource.prototype.process = function (request, callback) {
                 };
 
                 if (response.aggregations) {
-                    result.aggregations = JSON.parse(JSON.stringify(transformAggregateResponse(request.aggregateTest, response.aggregations)));
+                    var transformedAggregateResponse = transformAggregateResponse(
+                        request.aggregateTest,
+                        response.aggregations
+                    );
+                    result.aggregations = JSON.parse(JSON.stringify(transformedAggregateResponse));
                 }
             }
 
@@ -154,7 +158,7 @@ DataSource.prototype.createSearchConfig = function (request) {
         body.query = {};
         body.query.filtered = {filter: createFilter(request.filter)};
     }
-    if (!request.limit && typeof request.limit !== "number") request.limit = 1000000;
+    if (!request.limit && typeof request.limit !== 'number') request.limit = 1000000;
     if (request.page) {
         body.from = (request.page - 1) * request.limit;
     }
@@ -174,11 +178,11 @@ DataSource.prototype.createSearchConfig = function (request) {
     if (body) search.body = body;
 
     if (request.aggregateTest) {
-        this.api.log.info({aggregateTest: request.aggregateTest}, "TODO: elasticsearch aggregations");
+        this.api.log.debug({aggregateTest: request.aggregateTest}, 'TODO: elasticsearch aggregations');
         body.aggs = convertAggregate(request.aggregateTest);
         if (!request.limit) {
             body.size = 0;
-            search.search_type = "count";
+            search.search_type = 'count';
         }
     }
 

@@ -7,7 +7,8 @@ module.exports = {
         return function () {
             this.error = log.error.bind(log);
             this.warning = log.warn.bind(log);
-            this.info = log.info.bind(log);
+            /* redirect es info to debug */
+            this.info = log.debug.bind(log);
             this.debug = log.debug.bind(log);
             // eslint-disable-next-line max-params
             this.trace = function (method, requestUrl, body, responseBody, responseStatus) {
