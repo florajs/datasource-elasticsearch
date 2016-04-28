@@ -115,12 +115,19 @@ var DataSource = module.exports = function (api, config) {
     });
 };
 
-DataSource.prototype.prepare = function (opts) {
-    this.api.log.debug(arguments, "flora-elasticsearch: PREPARE");
-    this.api.log.debug(Object.keys(this.api), "flora-elasticsearch: THIS");
-    if (opts && opts.boost) {
-        this.boost = opts.boost.split(',');
+DataSource.prototype.prepare = function (dsConfig) {
+    this.api.log.trace(arguments, "flora-elasticsearch: PREPARE");
+
+    var queryOptions = {};
+    if (dsConfig && dsConfig.boost) {
+        queryOptions.boost = dsConfig.boost.split(',');
     }
+
+    if (dsConfig && dsConfig.field_value_factor) {
+        queryOptions.field_value_factor = JSON.parse(dsConfig.field_value_factor);
+    }
+
+    dsConfig.queryOptions = queryOptions;
 };
 
 /**
@@ -131,10 +138,7 @@ DataSource.prototype.process = function (request, callback) {
     var search = this.createSearchConfig(request);
     var log = this.api.log;
 
-    this.api.log.debug(request, "flora-elasticsearch req");
-
-
-    log.debug(search, 'flora-elasticsearch created search request');
+    log.debug({request:request, search: search}, "flora-elasticsearch req -> search");
 
     this.client.search(search, function (err, response) {
         if (request._explain) {
@@ -220,15 +224,29 @@ DataSource.prototype.createSearchConfig = function (request) {
 
     if (request.search && request.search.length > 0) {
         var fields = ['_all'];
-        if (this.boost) {
-            fields = this.boost.concat(fields);
+        if (request.queryOptions && request.queryOptions.boost) {
+            fields = request.queryOptions.boost.concat(fields);
         }
-        search.body.query = {'simple_query_string': {
-            'query': request.search,
-            'analyzer': 'snowball',
-            'fields': fields,
-            'default_operator': 'and'
-        }};
+
+        var query =  {
+            'simple_query_string': {
+                'query': request.search,
+                'analyzer': 'snowball',
+                'fields': fields,
+                'default_operator': 'and'
+            }
+        };
+
+        if (request.queryOptions && request.queryOptions.field_value_factor) {
+            query = {
+                'function_score': {
+                    'query': query,
+                    'field_value_factor': request.queryOptions.field_value_factor
+                }
+            };
+        }
+
+        search.body.query = query;
     }
 
     if (request.aggregateTest) {
