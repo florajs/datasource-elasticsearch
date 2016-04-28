@@ -115,10 +115,12 @@ var DataSource = module.exports = function (api, config) {
     });
 };
 
-DataSource.prototype.prepare = function () {
+DataSource.prototype.prepare = function (opts) {
     this.api.log.debug(arguments, "flora-elasticsearch: PREPARE");
     this.api.log.debug(Object.keys(this.api), "flora-elasticsearch: THIS");
-
+    if (opts && opts.boost) {
+        this.boost = opts.boost.split(',');
+    }
 };
 
 /**
@@ -217,10 +219,14 @@ DataSource.prototype.createSearchConfig = function (request) {
     if (body) search.body = body;
 
     if (request.search && request.search.length > 0) {
+        var fields = ['_all'];
+        if (this.boost) {
+            fields = this.boost.concat(fields);
+        }
         search.body.query = {'simple_query_string': {
             'query': request.search,
             'analyzer': 'snowball',
-            'fields': ['_all'],
+            'fields': fields,
             'default_operator': 'and'
         }};
     }
