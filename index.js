@@ -46,6 +46,19 @@ function convertAggregate(aggregate) {
             if (agg.aggregate.length) {
                 result.terms.aggs = convertAggregate(agg.aggregate);
             }
+        } else if (agg.functionName === 'values') {
+            if (!agg.fields || agg.fields.length != 1) {
+                // console.log(agg);
+                throw new Error('Invalid count aggregation: requires exactly one field');
+            }
+
+            result.terms = {field:agg.fields[0]};
+            if (agg.options.limit) {
+                result.terms.size = parseInt(agg.options.limit, 10);
+            }
+            if (agg.aggregate.length) {
+                result.terms.aggs = convertAggregate(agg.aggregate);
+            }
         } else if (agg.functionName === 'max' || agg.functionName === 'min') {
             if (!agg.fields || agg.fields.length != 1) {
                 throw new Error(`Invalid ${agg.functionName} aggregation: requires exactly one field`);
@@ -62,13 +75,27 @@ function convertAggregate(aggregate) {
     return aggregations;
 }
 
+function transformBuckets(agg, buckets) {
+    buckets.forEach(function (bucket) {
+        bucket.count = bucket.doc_count;
+        delete bucket.doc_count;
+    });
+
+    return buckets;
+}
+
 function transformAggregateResponse(floraAggregate, elasticAggregations) {
     var result = {};
     floraAggregate.forEach(function (agg) {
         var elasticAgg = elasticAggregations[agg.alias];
         var r = null;
         if (agg.functionName === 'count') {
-            r = elasticAgg.buckets;
+            r = transformBuckets(agg, elasticAgg.buckets);
+        } else if (agg.functionName === 'values') {
+            r = transformBuckets(agg, elasticAgg.buckets);
+            r = r.map(function (item) {
+                return item.key;
+            });
         } else if (agg.functionName === 'min' || agg.functionName === 'max') {
             r = elasticAgg.value;
         }
@@ -88,7 +115,11 @@ var DataSource = module.exports = function (api, config) {
     });
 };
 
-DataSource.prototype.prepare = function () {};
+DataSource.prototype.prepare = function () {
+    this.api.log.debug(arguments, "flora-elasticsearch: PREPARE");
+    this.api.log.debug(Object.keys(this.api), "flora-elasticsearch: THIS");
+
+};
 
 /**
 * @param {Object} request
@@ -97,6 +128,9 @@ DataSource.prototype.prepare = function () {};
 DataSource.prototype.process = function (request, callback) {
     var search = this.createSearchConfig(request);
     var log = this.api.log;
+
+    this.api.log.debug(request, "flora-elasticsearch req");
+
 
     log.debug(search, 'flora-elasticsearch created search request');
 
@@ -164,6 +198,9 @@ DataSource.prototype.createSearchConfig = function (request) {
     }
     body.size = request.limit;
 
+    /* TODO: think about whether it should be possible to pass a custom elasticsearch query json
+       from the client. actually, "search" param should be used to pass user's queries into the fulltext
+       engine, which is what we do below now. */
     /*if (request.search) {
         var parsedSearchParameter = JSON.parse(request.search);
         _.forEach(parsedSearchParameter, function (value, key) {
@@ -175,7 +212,18 @@ DataSource.prototype.createSearchConfig = function (request) {
     //search.fields = request.attributes;
     search.index = request.esindex;
     if (request.estype) search.type = request.estype;
+
+    body = body || {};
     if (body) search.body = body;
+
+    if (request.search && request.search.length > 0) {
+        search.body.query = {'simple_query_string': {
+            'query': request.search,
+            'analyzer': 'snowball',
+            'fields': ['_all'],
+            'default_operator': 'and'
+        }};
+    }
 
     if (request.aggregateTest) {
         this.api.log.debug({aggregateTest: request.aggregateTest}, 'TODO: elasticsearch aggregations');
