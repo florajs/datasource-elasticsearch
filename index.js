@@ -220,7 +220,7 @@ DataSource.prototype.createSearchConfig = function (request) {
     if (request.estype) search.type = request.estype;
 
     body = body || {};
-    if (body) search.body = body;
+    search.body = body;
 
     if (request.search && request.search.length > 0) {
         var fields = ['_all'];
@@ -228,7 +228,7 @@ DataSource.prototype.createSearchConfig = function (request) {
             fields = request.queryOptions.boost.concat(fields);
         }
 
-        var query =  {
+        var query = {
             'simple_query_string': {
                 'query': request.search,
                 'analyzer': 'snowball',
@@ -246,7 +246,13 @@ DataSource.prototype.createSearchConfig = function (request) {
             };
         }
 
-        search.body.query = query;
+        /* if we have constructed a filter before, insert the search string query into the filtered
+           query. otherwise, it is a query on the top level. */
+        if (search.body.query && search.body.query.filtered) {
+            search.body.query.filtered.query = query;
+        } else {
+            search.body.query = query;
+        }
     }
 
     if (request.aggregateTest) {
