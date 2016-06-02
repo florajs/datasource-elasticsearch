@@ -176,6 +176,7 @@ DataSource.prototype.process = function (request, callback) {
 
                 result = {
                     data: data,
+                    totalCount: response.hits.total
                 };
 
                 if (response.aggregations) {
