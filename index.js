@@ -226,13 +226,13 @@ DataSource.prototype.createSearchConfig = function (request) {
     if (request.search && request.search.length > 0) {
         var fields = ['_all'];
         if (request.queryOptions && request.queryOptions.boost) {
-            fields = request.queryOptions.boost.concat(fields);
+            fields = request.queryOptions.boost;
         }
 
         var query = {
+            //'prefix': {
             'simple_query_string': {
                 'query': request.search,
-                'analyzer': 'snowball',
                 'fields': fields,
                 'default_operator': 'and'
             }
