@@ -230,11 +230,10 @@ DataSource.prototype.createSearchConfig = function (request) {
         }
 
         var query = {
-            //'prefix': {
-            'simple_query_string': {
+            'multi_match': {
+                'type': 'phrase_prefix',
                 'query': request.search,
-                'fields': fields,
-                'default_operator': 'and'
+                'fields': fields
             }
         };
 
