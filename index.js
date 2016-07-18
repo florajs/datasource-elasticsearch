@@ -161,19 +161,6 @@ DataSource.prototype.process = function (request, callback) {
                     return flattenObjectKeys(hit._source);
                 });
 
-                /*if (response.aggregations) {
-                    result = {
-                        data: {
-                            aggregations: response.aggregations,
-                            data: data
-                        }
-                    }
-                } else {
-                    result = {
-                        data: data
-                    };
-                } */
-
                 result = {
                     data: data,
                     totalCount: response.hits.total
@@ -262,6 +249,26 @@ DataSource.prototype.createSearchConfig = function (request) {
             body.size = 0;
             search.search_type = 'count';
         }
+    }
+
+    if (request.order) {
+        var sortMap = null;
+        if (request && request.sortMap) {
+            sortMap = JSON.parse(request.sortMap);
+        }
+
+        var sort = search.body.sort = request.order.map(function (sort) {
+            var result = {};
+            var fieldName = sort.attribute;
+            if (sortMap && sortMap[fieldName]) {
+                fieldName = sortMap[fieldName];
+
+            }
+            result[fieldName] = sort.direction;
+            return result;
+        });
+
+        sort.push('_score');
     }
 
     return search;
