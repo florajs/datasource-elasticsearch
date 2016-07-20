@@ -329,9 +329,14 @@ function combineFilters(conditions, attribute) {
                 result.ids.values = result.ids.values || [];
                 result.ids.values.push(condition.value);
             } else {
-                /*  term filter */
-                result.term = {};
-                result.term[attribute] = condition.value;
+                /*  term/terms filter */
+                if (_.isArray(condition.value)) {
+                    result.terms = {};
+                    result.terms[attribute] = condition.value;
+                } else {
+                    result.term = {};
+                    result.term[attribute] = condition.value;
+                }
             }
         } else if (condition.operator === 'greater') {
             result.range = result.range || {};
