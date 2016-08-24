@@ -61,7 +61,7 @@ function convertAggregate(aggregate) {
             }
         } else if (agg.functionName === 'max' || agg.functionName === 'min') {
             if (!agg.fields || agg.fields.length != 1) {
-                throw new Error(`Invalid ${agg.functionName} aggregation: requires exactly one field`);
+                throw new Error('Invalid ' + agg.functionName + ' aggregation: requires exactly one field');
             }
 
             result[agg.functionName] = {field:agg.fields[0]};
@@ -116,7 +116,7 @@ var DataSource = module.exports = function (api, config) {
 };
 
 DataSource.prototype.prepare = function (dsConfig) {
-    this.api.log.trace(arguments, "flora-elasticsearch: PREPARE");
+    this.api.log.trace(arguments, 'flora-elasticsearch: PREPARE');
 
     var queryOptions = {};
     if (dsConfig && dsConfig.boost) {
@@ -138,7 +138,7 @@ DataSource.prototype.process = function (request, callback) {
     var search = this.createSearchConfig(request);
     var log = this.api.log;
 
-    log.debug({request:request, search: search}, "flora-elasticsearch req -> search");
+    log.debug({request:request, search: search}, 'flora-elasticsearch req -> search');
 
     this.client.search(search, function (err, response) {
         if (request._explain) {
