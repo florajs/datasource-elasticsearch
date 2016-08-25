@@ -28,8 +28,5 @@
     "space-unary-ops": 0,
     "strict": [2, "global"],
     "valid-jsdoc": 0
-  },
-  "ecmaFeatures": {
-    "templateStrings": true
   }
 }

@@ -1,9 +1,8 @@
 'use strict';
 
-var
-    elasticsearch = require('elasticsearch'),
-    esLogAdapter = require('./esLogAdapter'),
-    _ = require('lodash');
+var elasticsearch = require('elasticsearch');
+var esLogAdapter = require('./esLogAdapter');
+var _ = require('lodash');
 
 function flattenObjectKeys(obj) {
     var result = {};
@@ -360,5 +359,4 @@ function combineFilters(conditions, attribute) {
     });
 
     return result;
-
 }
