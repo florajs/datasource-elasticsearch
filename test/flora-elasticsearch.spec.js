@@ -37,6 +37,7 @@ describe('Flora Elasticsearch DataSource', function () {
     });
 
     describe('request builder', function () {
+
         it('should use ids filter for retrieve by id', function() {
             var search = dataSource.createSearchConfig({
                 esindex: 'fund',
@@ -59,6 +60,39 @@ describe('Flora Elasticsearch DataSource', function () {
                             "filter": {
                                 "ids": {
                                     "values": ["119315"]
+                                }
+                            }
+                        }
+                    },
+                    "size": 1000000
+                }
+            };
+
+            expect(search).to.deep.equal(expected);
+        });
+
+        it('should not nest id arrays for retrieve by multiple ids', function() {
+            var search = dataSource.createSearchConfig({
+                esindex: 'fund',
+                estype: 'fund',
+                filter: [[
+                    {
+                        "attribute": "_id",
+                        "operator": "equal",
+                        "value": ["133962", "133963"]
+                    }
+                ]]
+            });
+
+            var expected = {
+                "index": "fund",
+                "type": "fund",
+                "body": {
+                    "query": {
+                        "filtered": {
+                            "filter": {
+                                "ids": {
+                                    "values": ["133962", "133963"]
                                 }
                             }
                         }
