@@ -1,5 +1,4 @@
-Flora Elasticsearch DataSource
-==============================
+# Flora Elasticsearch DataSource
 
 [![Build Status](https://travis-ci.org/godmodelabs/flora-elasticsearch.svg?branch=master)](https://travis-ci.org/godmodelabs/flora-elasticsearch)
 [![NPM version](https://badge.fury.io/js/flora-elasticsearch.svg)](https://www.npmjs.com/package/flora-elasticsearch)
@@ -9,7 +8,6 @@ Flora Elasticsearch DataSource
 
 This is a very early status of implementation and prone to change in the future.
 
-License
--------
+## License
 
 [MIT](LICENSE)

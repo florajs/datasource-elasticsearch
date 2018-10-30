@@ -4,9 +4,10 @@
   "description": "Elasticsearch connection for Flora",
   "main": "index.js",
   "scripts": {
-    "test": "grunt test",
-    "lint": "grunt lint"
+    "test": "eslint . && mocha test/*",
+    "lint": "eslint ."
   },
+  "pre-commit": "test",
   "author": {
     "name": "BörseGo AG",
     "email": "it@boerse-go.de"
@@ -24,26 +25,20 @@
     }
   ],
   "engines": {
-    "node": ">=0.10.0"
+    "node": ">=8"
   },
   "dependencies": {
-    "elasticsearch": "^11.0.1",
+    "elasticsearch": "^15.2.0",
     "lodash": "^4.14.1"
   },
   "devDependencies": {
-    "chai": "^3.3.0",
-    "eslint": "^3.2.2",
-    "grunt": "^1.0.1",
-    "grunt-cli": "^1.2.0",
-    "grunt-contrib-clean": "1.0.x",
-    "grunt-eslint": "19.0.x",
-    "grunt-mocha-istanbul": "^5.0.1",
-    "grunt-mocha-test": "0.12.x",
-    "istanbul": "0.4.x",
-    "load-grunt-tasks": "^3.3.0",
-    "mocha": "3.0.x",
-    "mocha-bamboo-reporter": "*",
-    "nock": "8.0.x",
+    "chai": "^4.2.0",
+    "eslint": "^5.8.0",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "mocha": "^5.2.0",
+    "pre-commit": "^1.2.2",
+    "prettier": "^1.14.3",
     "when": "^3.7.3"
   }
 }
