@@ -6,7 +6,7 @@
 
 [Elasticsearch](https://www.elastic.co/products/elasticsearch) connection for [Flora](https://github.com/godmodelabs/flora).
 
-This is a very early status of implementation and prone to change in the future.
+Simple Elasticsearch data source for [Flora](https://github.com/godmodelabs/flora).
 
 ## License
 
