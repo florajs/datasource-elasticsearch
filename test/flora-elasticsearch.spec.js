@@ -5,6 +5,7 @@
 const { expect } = require('chai');
 
 const FloraElasticsearch = require('../index');
+const createSearchConfig = require('../lib/create-search-config');
 
 const nop = function() {};
 
@@ -13,7 +14,8 @@ const mockLog = {
     debug: nop,
     trace: nop,
     error: nop,
-    warn: nop
+    warn: nop,
+    child: () => mockLog
 };
 
 describe('Flora Elasticsearch DataSource', function() {
@@ -40,7 +42,7 @@ describe('Flora Elasticsearch DataSource', function() {
 
     describe('request builder', function() {
         it('should use ids filter for retrieve by id', function() {
-            const search = dataSource.createSearchConfig({
+            const search = createSearchConfig({
                 esindex: 'fund',
                 estype: 'fund',
                 filter: [
@@ -75,7 +77,7 @@ describe('Flora Elasticsearch DataSource', function() {
         });
 
         it('should not nest id arrays for retrieve by multiple ids', function() {
-            const search = dataSource.createSearchConfig({
+            const search = createSearchConfig({
                 esindex: 'fund',
                 estype: 'fund',
                 filter: [
@@ -110,7 +112,7 @@ describe('Flora Elasticsearch DataSource', function() {
         });
 
         it('should convert an aliased agg', function() {
-            const search = dataSource.createSearchConfig({
+            const search = createSearchConfig({
                 esindex: 'prod',
                 estype: 'instrument',
                 limit: 0,
