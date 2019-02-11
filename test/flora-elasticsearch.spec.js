@@ -61,12 +61,8 @@ describe('Flora Elasticsearch DataSource', function() {
                 type: 'fund',
                 body: {
                     query: {
-                        filtered: {
-                            filter: {
-                                ids: {
-                                    values: ['119315']
-                                }
-                            }
+                        ids: {
+                            values: ['119315']
                         }
                     },
                     size: 1000000
@@ -96,12 +92,8 @@ describe('Flora Elasticsearch DataSource', function() {
                 type: 'fund',
                 body: {
                     query: {
-                        filtered: {
-                            filter: {
-                                ids: {
-                                    values: ['133962', '133963']
-                                }
-                            }
+                        ids: {
+                            values: ['133962', '133963']
                         }
                     },
                     size: 1000000
