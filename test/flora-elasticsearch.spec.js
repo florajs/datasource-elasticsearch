@@ -7,7 +7,7 @@ const { expect } = require('chai');
 const FloraElasticsearch = require('../index');
 const createSearchConfig = require('../lib/create-search-config');
 
-const nop = function() {};
+const nop = function () {};
 
 const mockLog = {
     info: nop,
@@ -18,11 +18,11 @@ const mockLog = {
     child: () => mockLog
 };
 
-describe('Flora Elasticsearch DataSource', function() {
+describe('Flora Elasticsearch DataSource', function () {
     let dataSource;
     const api = { log: mockLog };
 
-    beforeEach(function() {
+    beforeEach(function () {
         const cfg = {
             node: 'http://example.com/elasticsearch'
         };
@@ -30,18 +30,18 @@ describe('Flora Elasticsearch DataSource', function() {
         dataSource = new FloraElasticsearch(api, cfg);
     });
 
-    describe('interface', function() {
-        it('should export a query function', function() {
+    describe('interface', function () {
+        it('should export a query function', function () {
             expect(dataSource.process).to.be.a('function');
         });
 
-        it('should export a prepare function', function() {
+        it('should export a prepare function', function () {
             expect(dataSource.prepare).to.be.a('function');
         });
     });
 
-    describe('request builder', function() {
-        it('should use ids filter for retrieve by id', function() {
+    describe('request builder', function () {
+        it('should use ids filter for retrieve by id', function () {
             const search = createSearchConfig({
                 esindex: 'fund',
                 filter: [
@@ -70,7 +70,7 @@ describe('Flora Elasticsearch DataSource', function() {
             expect(search).to.deep.equal(expected);
         });
 
-        it('should not nest id arrays for retrieve by multiple ids', function() {
+        it('should not nest id arrays for retrieve by multiple ids', function () {
             const search = createSearchConfig({
                 esindex: 'fund',
                 filter: [
@@ -99,7 +99,7 @@ describe('Flora Elasticsearch DataSource', function() {
             expect(search).to.deep.equal(expected);
         });
 
-        it('should convert an aliased agg', function() {
+        it('should convert an aliased agg', function () {
             const search = createSearchConfig({
                 esindex: 'prod',
                 limit: 0,
