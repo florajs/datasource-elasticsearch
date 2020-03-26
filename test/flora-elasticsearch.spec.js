@@ -24,7 +24,7 @@ describe('Flora Elasticsearch DataSource', function() {
 
     beforeEach(function() {
         const cfg = {
-            hosts: ['http://example.com/elasticsearch']
+            node: 'http://example.com/elasticsearch'
         };
 
         dataSource = new FloraElasticsearch(api, cfg);
@@ -44,7 +44,6 @@ describe('Flora Elasticsearch DataSource', function() {
         it('should use ids filter for retrieve by id', function() {
             const search = createSearchConfig({
                 esindex: 'fund',
-                estype: 'fund',
                 filter: [
                     [
                         {
@@ -58,7 +57,6 @@ describe('Flora Elasticsearch DataSource', function() {
 
             const expected = {
                 index: 'fund',
-                type: 'fund',
                 body: {
                     query: {
                         ids: {
@@ -75,7 +73,6 @@ describe('Flora Elasticsearch DataSource', function() {
         it('should not nest id arrays for retrieve by multiple ids', function() {
             const search = createSearchConfig({
                 esindex: 'fund',
-                estype: 'fund',
                 filter: [
                     [
                         {
@@ -89,7 +86,6 @@ describe('Flora Elasticsearch DataSource', function() {
 
             const expected = {
                 index: 'fund',
-                type: 'fund',
                 body: {
                     query: {
                         ids: {
@@ -106,7 +102,6 @@ describe('Flora Elasticsearch DataSource', function() {
         it('should convert an aliased agg', function() {
             const search = createSearchConfig({
                 esindex: 'prod',
-                estype: 'instrument',
                 limit: 0,
 
                 /* countByIssuer=count(limit:20,issuer.name) */
@@ -136,8 +131,7 @@ describe('Flora Elasticsearch DataSource', function() {
                     size: 0
                 },
                 index: 'prod',
-                search_type: 'count',
-                type: 'instrument'
+                search_type: 'count'
             };
 
             expect(search).to.deep.equal(expected);
