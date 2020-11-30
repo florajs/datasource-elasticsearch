@@ -25,6 +25,12 @@
       "email": "thorben.ziemek@boerse-go.de"
     }
   ],
+  "files": [
+    "index.js",
+    "lib/",
+    "README.md",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=10"
   },
