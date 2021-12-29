@@ -27,9 +27,7 @@
   ],
   "files": [
     "index.js",
-    "lib/",
-    "README.md",
-    "LICENSE"
+    "lib/"
   ],
   "engines": {
     "node": ">=12"
