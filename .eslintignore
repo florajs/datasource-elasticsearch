@@ -1,4 +1,2 @@
-build
-coverage
-examples
 node_modules
+build
