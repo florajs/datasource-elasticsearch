@@ -13,11 +13,11 @@
     "name": "BörseGo AG",
     "email": "it@boerse-go.de"
   },
-  "homepage": "https://github.com/godmodelabs/flora-elasticsearch",
+  "homepage": "https://github.com/florajs/datasource-elasticsearch",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/godmodelabs/flora-elasticsearch.git"
+    "url": "https://github.com/florajs/datasource-elasticsearch.git"
   },
   "contributors": [
     {
