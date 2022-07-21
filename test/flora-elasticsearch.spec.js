@@ -52,7 +52,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 ]
             });
 
-            const expected = {
+            expect(search).to.deep.equal({
                 index: 'fund',
                 body: {
                     query: {
@@ -62,9 +62,7 @@ describe('Flora Elasticsearch DataSource', () => {
                     },
                     size: 1000000
                 }
-            };
-
-            expect(search).to.deep.equal(expected);
+            });
         });
 
         it('should not nest id arrays for retrieve by multiple ids', () => {
@@ -81,7 +79,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 ]
             });
 
-            const expected = {
+            expect(search).to.deep.equal({
                 index: 'fund',
                 body: {
                     query: {
@@ -91,9 +89,7 @@ describe('Flora Elasticsearch DataSource', () => {
                     },
                     size: 1000000
                 }
-            };
-
-            expect(search).to.deep.equal(expected);
+            });
         });
 
         it('should convert an aliased agg', () => {
@@ -115,7 +111,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 ]
             });
 
-            const expected = {
+            expect(search).to.deep.equal({
                 body: {
                     aggs: {
                         countByIssuer: {
@@ -129,9 +125,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 },
                 index: 'prod',
                 search_type: 'count'
-            };
-
-            expect(search).to.deep.equal(expected);
+            });
         });
     });
 });
