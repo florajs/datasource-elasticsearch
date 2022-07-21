@@ -107,6 +107,60 @@ describe('Flora Elasticsearch DataSource', () => {
                 });
         });
 
+        it('should handle request specific Elasticsearch queries', () => {
+            const elasticsearchQuery = {
+                function_score: {
+                    functions: [
+                        {
+                            field_value_factor: {
+                                field: 'assetClass.fulltextBoost',
+                                missing: 0
+                            },
+                            weight: 12
+                        }
+                    ]
+                },
+                boost_mode: 'multiply'
+            };
+            const { body } = createSearchConfig({ esindex: 'fund', elasticsearchQuery });
+
+            expect(body.query).to.eql(elasticsearchQuery);
+        });
+
+        it('should combine request specific Elasticsearch queries with filters', () => {
+            const elasticsearchQuery = {
+                function_score: {
+                    functions: [
+                        {
+                            field_value_factor: {
+                                field: 'assetClass.fulltextBoost',
+                                missing: 0
+                            },
+                            weight: 12
+                        }
+                    ]
+                },
+                boost_mode: 'multiply'
+            };
+            const { body } = createSearchConfig({
+                esindex: 'fund',
+                filter: [
+                    [
+                        {
+                            attribute: '_id',
+                            operator: 'equal',
+                            value: '119315'
+                        }
+                    ]
+                ],
+                elasticsearchQuery
+            });
+
+            expect(body.query).to.eql({
+                bool: { must: [{ ids: { values: ['119315'] } }, elasticsearchQuery] }
+            });
+        });
+
         it('should use ids filter for retrieve by id', () => {
             const search = createSearchConfig({
                 esindex: 'fund',
