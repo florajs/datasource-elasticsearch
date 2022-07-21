@@ -58,6 +58,55 @@ describe('Flora Elasticsearch DataSource', () => {
             expect(search.body).to.have.property('from', 10);
         });
 
+        it('should handle search', () => {
+            const { body } = createSearchConfig({ esindex: 'fund', search: 'foo' });
+
+            expect(body.query)
+                .to.have.property('multi_match')
+                .and.to.eql({
+                    type: 'phrase_prefix',
+                    query: 'foo',
+                    fields: ['_all']
+                });
+        });
+
+        it('should handle search boost query option', () => {
+            const boost = ['name^5', 'seoDescription^4', 'interests.value'];
+            const { body } = createSearchConfig({
+                esindex: 'fund',
+                search: 'foo',
+                queryOptions: { boost }
+            });
+
+            expect(body.query).to.have.property('multi_match').and.to.eql({
+                type: 'phrase_prefix',
+                query: 'foo',
+                fields: boost
+            });
+        });
+
+        it('should handle search field_value_factor query option', () => {
+            const field_value_factor = { field: 'searchPriority', modifier: 'log1p' };
+            const { body } = createSearchConfig({
+                esindex: 'fund',
+                search: 'foo',
+                queryOptions: { field_value_factor }
+            });
+
+            expect(body.query)
+                .to.have.property('function_score')
+                .and.to.eql({
+                    query: {
+                        multi_match: {
+                            type: 'phrase_prefix',
+                            query: 'foo',
+                            fields: ['_all']
+                        }
+                    },
+                    field_value_factor
+                });
+        });
+
         it('should use ids filter for retrieve by id', () => {
             const search = createSearchConfig({
                 esindex: 'fund',
