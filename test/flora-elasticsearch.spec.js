@@ -53,6 +53,11 @@ describe('Flora Elasticsearch DataSource', () => {
             expect(search.body).to.have.property('size', 1000000);
         });
 
+        it('should handle page', () => {
+            const search = createSearchConfig({ esindex: 'fund', limit: 10, page: 2 });
+            expect(search.body).to.have.property('from', 10);
+        });
+
         it('should use ids filter for retrieve by id', () => {
             const search = createSearchConfig({
                 esindex: 'fund',
