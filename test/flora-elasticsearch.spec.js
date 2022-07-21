@@ -38,6 +38,21 @@ describe('Flora Elasticsearch DataSource', () => {
     });
 
     describe('request builder', () => {
+        it('should handle limit', () => {
+            const search = createSearchConfig({ esindex: 'fund', limit: 10 });
+            expect(search.body).to.have.property('size', 10);
+        });
+
+        it('should set fallback if limit is not set', () => {
+            const search = createSearchConfig({ esindex: 'fund' });
+            expect(search.body).to.have.property('size', 1000000);
+        });
+
+        it('should handle unlimited limit', () => {
+            const search = createSearchConfig({ esindex: 'fund', limit: 'unlimited' });
+            expect(search.body).to.have.property('size', 1000000);
+        });
+
         it('should use ids filter for retrieve by id', () => {
             const search = createSearchConfig({
                 esindex: 'fund',
