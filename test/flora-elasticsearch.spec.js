@@ -365,6 +365,63 @@ describe('Flora Elasticsearch DataSource', () => {
                     });
             });
 
+            it('should handle "or" filters', () => {
+                const { body } = createSearchConfig({
+                    esindex: 'fund',
+                    filter: [
+                        [
+                            {
+                                attribute: '_id',
+                                operator: 'equal',
+                                value: ['133962', '133963']
+                            },
+                            {
+                                attribute: 'attr',
+                                operator: 'lessOrEqual',
+                                value: 1
+                            }
+                        ],
+                        [
+                            {
+                                attribute: '_id',
+                                operator: 'equal',
+                                value: ['133964', '133965']
+                            },
+                            {
+                                attribute: 'attr1',
+                                operator: 'greater',
+                                value: 1
+                            }
+                        ]
+                    ]
+                });
+
+                expect(body)
+                    .to.have.property('query')
+                    .and.to.eql({
+                        bool: {
+                            should: [
+                                {
+                                    bool: {
+                                        must: [
+                                            { ids: { values: ['133962', '133963'] } },
+                                            { range: { attr: { lte: 1 } } }
+                                        ]
+                                    }
+                                },
+                                {
+                                    bool: {
+                                        must: [
+                                            { ids: { values: ['133964', '133965'] } },
+                                            { range: { attr1: { gt: 1 } } }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    });
+            });
+
             it('should throw an error for unsupported Flora operators', () => {
                 expect(() => {
                     createSearchConfig({
