@@ -127,6 +127,43 @@ describe('Flora Elasticsearch DataSource', () => {
             expect(body.query).to.eql(elasticsearchQuery);
         });
 
+        it('should handle single order criteria', () => {
+            const { body } = createSearchConfig({
+                esindex: 'fund',
+                order: [{ attribute: 'name', direction: 'asc' }]
+            });
+
+            expect(body)
+                .to.have.property('sort')
+                .and.to.eql([{ name: 'asc' }, '_score']);
+        });
+
+        it('should handle multiple order criterias', () => {
+            const { body } = createSearchConfig({
+                esindex: 'fund',
+                order: [
+                    { attribute: 'name', direction: 'asc' },
+                    { attribute: 'performance', direction: 'desc' }
+                ]
+            });
+
+            expect(body)
+                .to.have.property('sort')
+                .and.to.eql([{ name: 'asc' }, { performance: 'desc' }, '_score']);
+        });
+
+        it('should handle sort maps', () => {
+            const { body } = createSearchConfig({
+                esindex: 'fund',
+                order: [{ attribute: 'name', direction: 'asc' }],
+                sortMap: '{"name":"name.raw"}'
+            });
+
+            expect(body)
+                .to.have.property('sort')
+                .and.to.eql([{ 'name.raw': 'asc' }, '_score']);
+        });
+
         it('should combine request specific Elasticsearch queries with filters', () => {
             const elasticsearchQuery = {
                 function_score: {
