@@ -440,41 +440,5 @@ describe('Flora Elasticsearch DataSource', () => {
                 }).to.throw(ImplementationError, `Operator "between" not implemented`);
             });
         });
-
-        it('should convert an aliased agg', () => {
-            const search = createSearchConfig({
-                esindex: 'prod',
-                limit: 0,
-
-                /* countByIssuer=count(limit:20,issuer.name) */
-                aggregateTest: [
-                    {
-                        options: {
-                            limit: '20'
-                        },
-                        fields: ['issuer.name'],
-                        aggregate: [],
-                        functionName: 'count',
-                        alias: 'countByIssuer'
-                    }
-                ]
-            });
-
-            expect(search).to.deep.equal({
-                body: {
-                    aggs: {
-                        countByIssuer: {
-                            terms: {
-                                field: 'issuer.name',
-                                size: 20
-                            }
-                        }
-                    },
-                    size: 0
-                },
-                index: 'prod',
-                search_type: 'count'
-            });
-        });
     });
 });
