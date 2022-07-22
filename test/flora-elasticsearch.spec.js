@@ -4,6 +4,7 @@ const { expect } = require('chai');
 
 const FloraElasticsearch = require('../index');
 const createSearchConfig = require('../lib/create-search-config');
+const { ImplementationError } = require('@florajs/errors');
 
 const nop = () => {};
 const mockLog = {
@@ -436,7 +437,7 @@ describe('Flora Elasticsearch DataSource', () => {
                             ]
                         ]
                     });
-                }).to.throw(Error);
+                }).to.throw(ImplementationError, `Operator "between" not implemented`);
             });
         });
 
