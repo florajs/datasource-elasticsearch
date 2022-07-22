@@ -198,57 +198,160 @@ describe('Flora Elasticsearch DataSource', () => {
             });
         });
 
-        it('should use ids filter for retrieve by id', () => {
-            const search = createSearchConfig({
-                esindex: 'fund',
-                filter: [
-                    [
-                        {
-                            attribute: '_id',
-                            operator: 'equal',
-                            value: '119315'
+        describe('filter', () => {
+            describe('equal', () => {
+                it('should use ids filter for retrieve by id', () => {
+                    const search = createSearchConfig({
+                        esindex: 'fund',
+                        filter: [
+                            [
+                                {
+                                    attribute: '_id',
+                                    operator: 'equal',
+                                    value: '119315'
+                                }
+                            ]
+                        ]
+                    });
+
+                    expect(search).to.deep.equal({
+                        index: 'fund',
+                        body: {
+                            query: {
+                                ids: {
+                                    values: ['119315']
+                                }
+                            },
+                            size: 1000000
                         }
-                    ]
-                ]
+                    });
+                });
+
+                it('should not nest id arrays for retrieve by multiple ids', () => {
+                    const search = createSearchConfig({
+                        esindex: 'fund',
+                        filter: [
+                            [
+                                {
+                                    attribute: '_id',
+                                    operator: 'equal',
+                                    value: ['133962', '133963']
+                                }
+                            ]
+                        ]
+                    });
+
+                    expect(search).to.deep.equal({
+                        index: 'fund',
+                        body: {
+                            query: {
+                                ids: {
+                                    values: ['133962', '133963']
+                                }
+                            },
+                            size: 1000000
+                        }
+                    });
+                });
+
+                it('should search for single attribute value', () => {
+                    const { body } = createSearchConfig({
+                        esindex: 'fund',
+                        filter: [
+                            [
+                                {
+                                    attribute: 'attr',
+                                    operator: 'equal',
+                                    value: 'foo'
+                                }
+                            ]
+                        ]
+                    });
+
+                    expect(body)
+                        .to.have.property('query')
+                        .and.to.eql({
+                            term: {
+                                attr: 'foo'
+                            }
+                        });
+                });
+
+                it('should search for multiple attribute values', () => {
+                    const { body } = createSearchConfig({
+                        esindex: 'fund',
+                        filter: [
+                            [
+                                {
+                                    attribute: 'attr',
+                                    operator: 'equal',
+                                    value: ['foo', 'bar']
+                                }
+                            ]
+                        ]
+                    });
+
+                    expect(body)
+                        .to.have.property('query')
+                        .and.to.eql({
+                            terms: {
+                                attr: ['foo', 'bar']
+                            }
+                        });
+                });
             });
 
-            expect(search).to.deep.equal({
-                index: 'fund',
-                body: {
-                    query: {
-                        ids: {
-                            values: ['119315']
-                        }
-                    },
-                    size: 1000000
-                }
-            });
-        });
+            const floraOperators = {
+                greater: 'gt',
+                greaterOrEqual: 'gte',
+                less: 'lt',
+                lessOrEqual: 'lte'
+            };
 
-        it('should not nest id arrays for retrieve by multiple ids', () => {
-            const search = createSearchConfig({
-                esindex: 'fund',
-                filter: [
-                    [
-                        {
-                            attribute: '_id',
-                            operator: 'equal',
-                            value: ['133962', '133963']
-                        }
-                    ]
-                ]
+            Object.keys(floraOperators).forEach((operator) => {
+                const elasticSearchFilterAttr = floraOperators[operator];
+
+                it(`should handle ${operator} filter`, () => {
+                    const { body } = createSearchConfig({
+                        esindex: 'fund',
+                        filter: [
+                            [
+                                {
+                                    attribute: 'attr',
+                                    operator,
+                                    value: 1337
+                                }
+                            ]
+                        ]
+                    });
+
+                    expect(body)
+                        .to.have.property('query')
+                        .and.to.eql({
+                            range: {
+                                attr: {
+                                    [elasticSearchFilterAttr]: 1337
+                                }
+                            }
+                        });
+                });
             });
 
-            expect(search).to.deep.equal({
-                index: 'fund',
-                body: {
-                    query: {
-                        ids: {
-                            values: ['133962', '133963']
-                        }
-                    },
-                    size: 1000000
-                }
+            it('should throw an error for unsupported Flora operators', () => {
+                expect(() => {
+                    createSearchConfig({
+                        esindex: 'fund',
+                        filter: [
+                            [
+                                {
+                                    attribute: 'attr',
+                                    operator: 'between',
+                                    value: [1, 3]
+                                }
+                            ]
+                        ]
+                    });
+                }).to.throw(Error);
             });
         });
 
