@@ -1,5 +1,8 @@
 'use strict';
 
+const { errors } = require('@elastic/elasticsearch');
+const { RequestError } = require('@florajs/errors');
+
 const { expect } = require('chai');
 const Mock = require('@elastic/elasticsearch-mock');
 
@@ -104,6 +107,52 @@ describe('Flora Elasticsearch DataSource', () => {
 
             const { totalCount } = await dataSource.process({ esindex: 'marvel' });
             expect(totalCount).to.equal(1337);
+        });
+
+        describe('error handling', () => {
+            it('should re-throw client errors as Flora request errors w/ additional information', async () => {
+                mock.add(
+                    { method: 'POST', path: '/marvel/_search' },
+                    () =>
+                        new errors.ResponseError({
+                            body: 'Test error handling',
+                            statusCode: 400
+                        })
+                );
+
+                try {
+                    await dataSource.process({ esindex: 'marvel' });
+                } catch (e) {
+                    expect(e)
+                        .to.be.instanceof(RequestError)
+                        .and.to.have.property('message', 'ResponseError from elasticsearch.');
+                    expect(e)
+                        .to.have.property('info')
+                        .and.to.have.property('originalError')
+                        .and.to.be.instanceof(errors.ResponseError);
+                    return;
+                }
+
+                throw new Error('Expected an error');
+            });
+
+            it('should re-throw non-client errors', async () => {
+                mock.add(
+                    { method: 'POST', path: '/marvel/_search' },
+                    () => new errors.ConnectionError('Something bad happened!')
+                );
+
+                try {
+                    await dataSource.process({ esindex: 'marvel' });
+                } catch (e) {
+                    expect(e)
+                        .to.be.instanceof(errors.ConnectionError)
+                        .and.to.have.property('message', 'Something bad happened!');
+                    return;
+                }
+
+                throw new Error('Expected an error');
+            });
         });
     });
 });
