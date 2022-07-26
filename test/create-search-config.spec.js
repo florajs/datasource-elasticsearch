@@ -277,16 +277,12 @@ describe('create-search-config', () => {
             });
         });
 
-        const floraOperators = {
+        Object.entries({
             greater: 'gt',
             greaterOrEqual: 'gte',
             less: 'lt',
             lessOrEqual: 'lte'
-        };
-
-        Object.keys(floraOperators).forEach((operator) => {
-            const elasticSearchFilterAttr = floraOperators[operator];
-
+        }).forEach(([operator, elasticSearchFilterAttr]) => {
             it(`should handle ${operator} filter`, () => {
                 const { body } = createSearchConfig({
                     ...floraRequest,
