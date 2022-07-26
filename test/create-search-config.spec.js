@@ -5,31 +5,33 @@ const { expect } = require('chai');
 const { ImplementationError } = require('@florajs/errors');
 
 describe('create-search-config', () => {
+    const floraRequest = { esindex: 'fund', attributes: ['_id'] };
+
     describe('limit', () => {
         it('should handle numerical limit', () => {
-            const search = createSearchConfig({ esindex: 'fund', limit: 10 });
+            const search = createSearchConfig({ ...floraRequest, limit: 10 });
             expect(search.body).to.have.property('size', 10);
         });
 
         it('should set fallback if limit is not set', () => {
-            const search = createSearchConfig({ esindex: 'fund' });
+            const search = createSearchConfig(floraRequest);
             expect(search.body).to.have.property('size', 1000000);
         });
 
         it('should handle unlimited limit', () => {
-            const search = createSearchConfig({ esindex: 'fund', limit: 'unlimited' });
+            const search = createSearchConfig({ ...floraRequest, limit: 'unlimited' });
             expect(search.body).to.have.property('size', 1000000);
         });
     });
 
     it('should handle page', () => {
-        const search = createSearchConfig({ esindex: 'fund', limit: 10, page: 2 });
+        const search = createSearchConfig({ ...floraRequest, limit: 10, page: 2 });
         expect(search.body).to.have.property('from', 10);
     });
 
     describe('search', () => {
         it('should handle search terms', () => {
-            const { body } = createSearchConfig({ esindex: 'fund', search: 'foo' });
+            const { body } = createSearchConfig({ ...floraRequest, search: 'foo' });
 
             expect(body.query)
                 .to.have.property('multi_match')
@@ -43,7 +45,7 @@ describe('create-search-config', () => {
         it('should handle search boost query option', () => {
             const boost = ['name^5', 'seoDescription^4', 'interests.value'];
             const { body } = createSearchConfig({
-                esindex: 'fund',
+                ...floraRequest,
                 search: 'foo',
                 queryOptions: { boost }
             });
@@ -58,7 +60,7 @@ describe('create-search-config', () => {
         it('should handle search field_value_factor query option', () => {
             const field_value_factor = { field: 'searchPriority', modifier: 'log1p' };
             const { body } = createSearchConfig({
-                esindex: 'fund',
+                ...floraRequest,
                 search: 'foo',
                 queryOptions: { field_value_factor }
             });
@@ -93,7 +95,7 @@ describe('create-search-config', () => {
             },
             boost_mode: 'multiply'
         };
-        const { body } = createSearchConfig({ esindex: 'fund', elasticsearchQuery });
+        const { body } = createSearchConfig({ ...floraRequest, elasticsearchQuery });
 
         expect(body.query).to.eql(elasticsearchQuery);
     });
@@ -101,7 +103,7 @@ describe('create-search-config', () => {
     describe('order', () => {
         it('should handle single order criteria', () => {
             const { body } = createSearchConfig({
-                esindex: 'fund',
+                ...floraRequest,
                 order: [{ attribute: 'name', direction: 'asc' }]
             });
 
@@ -112,7 +114,7 @@ describe('create-search-config', () => {
 
         it('should handle multiple order criterias', () => {
             const { body } = createSearchConfig({
-                esindex: 'fund',
+                ...floraRequest,
                 order: [
                     { attribute: 'name', direction: 'asc' },
                     { attribute: 'performance', direction: 'desc' }
@@ -126,7 +128,7 @@ describe('create-search-config', () => {
 
         it('should handle sort maps', () => {
             const { body } = createSearchConfig({
-                esindex: 'fund',
+                ...floraRequest,
                 order: [{ attribute: 'name', direction: 'asc' }],
                 sortMap: '{"name":"name.raw"}'
             });
@@ -153,7 +155,7 @@ describe('create-search-config', () => {
             boost_mode: 'multiply'
         };
         const { body } = createSearchConfig({
-            esindex: 'fund',
+            ...floraRequest,
             filter: [
                 [
                     {
@@ -184,7 +186,7 @@ describe('create-search-config', () => {
         describe('equal', () => {
             it('should use ids filter for retrieve by id', () => {
                 const { body } = createSearchConfig({
-                    esindex: 'fund',
+                    ...floraRequest,
                     filter: [
                         [
                             {
@@ -207,7 +209,7 @@ describe('create-search-config', () => {
 
             it('should not nest id arrays for retrieve by multiple ids', () => {
                 const { body } = createSearchConfig({
-                    esindex: 'fund',
+                    ...floraRequest,
                     filter: [
                         [
                             {
@@ -230,7 +232,7 @@ describe('create-search-config', () => {
 
             it('should search for single attribute value', () => {
                 const { body } = createSearchConfig({
-                    esindex: 'fund',
+                    ...floraRequest,
                     filter: [
                         [
                             {
@@ -253,7 +255,7 @@ describe('create-search-config', () => {
 
             it('should search for multiple attribute values', () => {
                 const { body } = createSearchConfig({
-                    esindex: 'fund',
+                    ...floraRequest,
                     filter: [
                         [
                             {
@@ -287,7 +289,7 @@ describe('create-search-config', () => {
 
             it(`should handle ${operator} filter`, () => {
                 const { body } = createSearchConfig({
-                    esindex: 'fund',
+                    ...floraRequest,
                     filter: [
                         [
                             {
@@ -313,7 +315,7 @@ describe('create-search-config', () => {
 
         it('should handle "and" filters', () => {
             const { body } = createSearchConfig({
-                esindex: 'fund',
+                ...floraRequest,
                 filter: [
                     [
                         {
@@ -341,7 +343,7 @@ describe('create-search-config', () => {
 
         it('should handle "or" filters', () => {
             const { body } = createSearchConfig({
-                esindex: 'fund',
+                ...floraRequest,
                 filter: [
                     [
                         {
@@ -393,7 +395,7 @@ describe('create-search-config', () => {
         it('should throw an error for unsupported Flora operators', () => {
             expect(() => {
                 createSearchConfig({
-                    esindex: 'fund',
+                    ...floraRequest,
                     filter: [
                         [
                             {
@@ -406,5 +408,10 @@ describe('create-search-config', () => {
                 });
             }).to.throw(ImplementationError, `Operator "between" not implemented`);
         });
+    });
+
+    it('should request required fields only', () => {
+        const search = createSearchConfig({ ...floraRequest, attributes: ['_id', 'assetClass.id'] });
+        expect(search).to.have.property('_source').and.to.eql(['_id', 'assetClass.*']);
     });
 });

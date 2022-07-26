@@ -19,6 +19,7 @@ const mockLog = {
 };
 
 describe('Flora Elasticsearch DataSource', () => {
+    const floraRequest = { esindex: 'marvel', attributes: ['_id'] };
     const api = { log: mockLog };
     let dataSource;
 
@@ -62,7 +63,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 hits: { hits: [] }
             }));
 
-            const { data } = await dataSource.process({ esindex: 'marvel' });
+            const { data } = await dataSource.process(floraRequest);
             expect(data).to.eql([]);
         });
 
@@ -76,7 +77,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 }
             }));
 
-            const { data } = await dataSource.process({ esindex: 'marvel' });
+            const { data } = await dataSource.process(floraRequest);
             expect(data).to.eql([
                 { _id: 1, id: 1, name: 'Captain America' },
                 { _id: 2, id: 2, name: 'Iron Man' }
@@ -93,7 +94,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 }
             }));
 
-            const { data } = await dataSource.process({ esindex: 'marvel' });
+            const { data } = await dataSource.process(floraRequest);
             expect(data).to.eql([
                 { _id: 1, id: 1, name: 'Captain America', 'team.id': 1 },
                 { _id: 2, id: 2, name: 'Iron Man', 'team.id': 2 }
@@ -105,7 +106,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 hits: { hits: [], total: { value: 1337, relation: 'eq' } }
             }));
 
-            const { totalCount } = await dataSource.process({ esindex: 'marvel' });
+            const { totalCount } = await dataSource.process(floraRequest);
             expect(totalCount).to.equal(1337);
         });
 
@@ -121,7 +122,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 );
 
                 try {
-                    await dataSource.process({ esindex: 'marvel' });
+                    await dataSource.process(floraRequest);
                 } catch (e) {
                     expect(e)
                         .to.be.instanceof(RequestError)
@@ -143,7 +144,7 @@ describe('Flora Elasticsearch DataSource', () => {
                 );
 
                 try {
-                    await dataSource.process({ esindex: 'marvel' });
+                    await dataSource.process(floraRequest);
                 } catch (e) {
                     expect(e)
                         .to.be.instanceof(errors.ConnectionError)
