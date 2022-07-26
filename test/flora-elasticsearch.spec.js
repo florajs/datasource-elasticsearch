@@ -70,16 +70,16 @@ describe('Flora Elasticsearch DataSource', () => {
             mock.add({ method: 'POST', path: '/marvel/_search' }, () => ({
                 hits: {
                     hits: [
-                        { _id: 1, _type: 'doc', _source: { id: 1, name: 'Captain America' } },
-                        { _id: 2, _type: 'doc', _source: { id: 2, name: 'Iron Man' } }
+                        { _id: 1, _source: { id: 1, name: 'Captain America' } },
+                        { _id: 2, _source: { id: 2, name: 'Iron Man' } }
                     ]
                 }
             }));
 
             const { data } = await dataSource.process({ esindex: 'marvel' });
             expect(data).to.eql([
-                { _id: 1, _type: 'doc', id: 1, name: 'Captain America' },
-                { _id: 2, _type: 'doc', id: 2, name: 'Iron Man' }
+                { _id: 1, id: 1, name: 'Captain America' },
+                { _id: 2, id: 2, name: 'Iron Man' }
             ]);
         });
 
@@ -87,16 +87,16 @@ describe('Flora Elasticsearch DataSource', () => {
             mock.add({ method: 'POST', path: '/marvel/_search' }, () => ({
                 hits: {
                     hits: [
-                        { _id: 1, _type: 'doc', _source: { id: 1, name: 'Captain America', team: { id: 1 } } },
-                        { _id: 2, _type: 'doc', _source: { id: 2, name: 'Iron Man', team: { id: 2 } } }
+                        { _id: 1, _source: { id: 1, name: 'Captain America', team: { id: 1 } } },
+                        { _id: 2, _source: { id: 2, name: 'Iron Man', team: { id: 2 } } }
                     ]
                 }
             }));
 
             const { data } = await dataSource.process({ esindex: 'marvel' });
             expect(data).to.eql([
-                { _id: 1, _type: 'doc', id: 1, name: 'Captain America', 'team.id': 1 },
-                { _id: 2, _type: 'doc', id: 2, name: 'Iron Man', 'team.id': 2 }
+                { _id: 1, id: 1, name: 'Captain America', 'team.id': 1 },
+                { _id: 2, id: 2, name: 'Iron Man', 'team.id': 2 }
             ]);
         });
 
