@@ -4,7 +4,7 @@
   "description": "Elasticsearch connection for Flora",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && mocha test/*",
+    "test": "eslint . && node --test test/*",
     "lint": "eslint .",
     "format": "npx prettier --write lib/* test/*"
   },
@@ -44,7 +44,6 @@
     "eslint": "^8.46.0",
     "eslint-config-prettier": "^8.10.0",
     "eslint-plugin-prettier": "^5.0.0",
-    "mocha": "^10.2.0",
     "pre-commit": "^1.2.2",
     "prettier": "^3.0.1"
   }

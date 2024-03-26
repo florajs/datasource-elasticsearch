@@ -1,5 +1,6 @@
 'use strict';
 
+const { describe, it, beforeEach, afterEach } = require('node:test');
 const assert = require('node:assert/strict');
 const { errors } = require('@elastic/elasticsearch');
 
