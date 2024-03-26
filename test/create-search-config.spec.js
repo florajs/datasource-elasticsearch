@@ -1,8 +1,7 @@
 'use strict';
 
+const assert = require('node:assert/strict');
 const createSearchConfig = require('../lib/create-search-config');
-const { expect } = require('chai');
-const { ImplementationError } = require('@florajs/errors');
 
 describe('create-search-config', () => {
     const floraRequest = { esindex: 'fund', attributes: ['_id'] };
@@ -10,36 +9,43 @@ describe('create-search-config', () => {
     describe('limit', () => {
         it('should handle numerical limit', () => {
             const search = createSearchConfig({ ...floraRequest, limit: 10 });
-            expect(search.body).to.have.property('size', 10);
+
+            assert.ok(Object.hasOwn(search.body, 'size'));
+            assert.equal(search.body.size, 10);
         });
 
         it('should set fallback if limit is not set', () => {
             const search = createSearchConfig(floraRequest);
-            expect(search.body).to.have.property('size', 1000000);
+
+            assert.ok(Object.hasOwn(search.body, 'size'));
+            assert.equal(search.body.size, 1000000);
         });
 
         it('should handle unlimited limit', () => {
             const search = createSearchConfig({ ...floraRequest, limit: 'unlimited' });
-            expect(search.body).to.have.property('size', 1000000);
+
+            assert.ok(Object.hasOwn(search.body, 'size'));
+            assert.equal(search.body.size, 1000000);
         });
     });
 
     it('should handle page', () => {
         const search = createSearchConfig({ ...floraRequest, limit: 10, page: 2 });
-        expect(search.body).to.have.property('from', 10);
+
+        assert.ok(Object.hasOwn(search.body, 'from'));
+        assert.equal(search.body.from, 10);
     });
 
     describe('search', () => {
         it('should handle search terms', () => {
             const { body } = createSearchConfig({ ...floraRequest, search: 'foo' });
 
-            expect(body.query)
-                .to.have.property('multi_match')
-                .and.to.eql({
-                    type: 'phrase_prefix',
-                    query: 'foo',
-                    fields: ['_all']
-                });
+            assert.ok(Object.hasOwn(body.query, 'multi_match'));
+            assert.deepEqual(body.query.multi_match, {
+                type: 'phrase_prefix',
+                query: 'foo',
+                fields: ['_all']
+            });
         });
 
         it('should handle search boost query option', () => {
@@ -50,7 +56,8 @@ describe('create-search-config', () => {
                 queryOptions: { boost }
             });
 
-            expect(body.query).to.have.property('multi_match').and.to.eql({
+            assert.ok(Object.hasOwn(body.query, 'multi_match'));
+            assert.deepEqual(body.query.multi_match, {
                 type: 'phrase_prefix',
                 query: 'foo',
                 fields: boost
@@ -65,18 +72,17 @@ describe('create-search-config', () => {
                 queryOptions: { field_value_factor }
             });
 
-            expect(body.query)
-                .to.have.property('function_score')
-                .and.to.eql({
-                    query: {
-                        multi_match: {
-                            type: 'phrase_prefix',
-                            query: 'foo',
-                            fields: ['_all']
-                        }
-                    },
-                    field_value_factor
-                });
+            assert.ok(Object.hasOwn(body.query, 'function_score'));
+            assert.deepEqual(body.query.function_score, {
+                query: {
+                    multi_match: {
+                        type: 'phrase_prefix',
+                        query: 'foo',
+                        fields: ['_all']
+                    }
+                },
+                field_value_factor
+            });
         });
     });
 
@@ -97,7 +103,7 @@ describe('create-search-config', () => {
         };
         const { body } = createSearchConfig({ ...floraRequest, elasticsearchQuery });
 
-        expect(body.query).to.eql(elasticsearchQuery);
+        assert.deepEqual(body.query, elasticsearchQuery);
     });
 
     describe('order', () => {
@@ -107,9 +113,8 @@ describe('create-search-config', () => {
                 order: [{ attribute: 'name', direction: 'asc' }]
             });
 
-            expect(body)
-                .to.have.property('sort')
-                .and.to.eql([{ name: 'asc' }, '_score']);
+            assert.ok(Object.hasOwn(body, 'sort'));
+            assert.deepEqual(body.sort, [{ name: 'asc' }, '_score']);
         });
 
         it('should handle multiple order criterias', () => {
@@ -121,9 +126,8 @@ describe('create-search-config', () => {
                 ]
             });
 
-            expect(body)
-                .to.have.property('sort')
-                .and.to.eql([{ name: 'asc' }, { performance: 'desc' }, '_score']);
+            assert.ok(Object.hasOwn(body, 'sort'));
+            assert.deepEqual(body.sort, [{ name: 'asc' }, { performance: 'desc' }, '_score']);
         });
 
         it('should handle sort maps', () => {
@@ -133,9 +137,8 @@ describe('create-search-config', () => {
                 sortMap: '{"name":"name.raw"}'
             });
 
-            expect(body)
-                .to.have.property('sort')
-                .and.to.eql([{ 'name.raw': 'asc' }, '_score']);
+            assert.ok(Object.hasOwn(body, 'sort'));
+            assert.deepEqual(body.sort, [{ 'name.raw': 'asc' }, '_score']);
         });
     });
 
@@ -168,7 +171,7 @@ describe('create-search-config', () => {
             elasticsearchQuery
         });
 
-        expect(body.query).to.eql({
+        assert.deepEqual(body.query, {
             bool: {
                 must: [
                     {
@@ -198,13 +201,12 @@ describe('create-search-config', () => {
                     ]
                 });
 
-                expect(body)
-                    .to.have.property('query')
-                    .and.to.eql({
-                        ids: {
-                            values: ['119315']
-                        }
-                    });
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    ids: {
+                        values: ['119315']
+                    }
+                });
             });
 
             it('should not nest id arrays for retrieve by multiple ids', () => {
@@ -221,13 +223,12 @@ describe('create-search-config', () => {
                     ]
                 });
 
-                expect(body)
-                    .to.have.property('query')
-                    .and.to.eql({
-                        ids: {
-                            values: ['133962', '133963']
-                        }
-                    });
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    ids: {
+                        values: ['133962', '133963']
+                    }
+                });
             });
 
             it('should search for single attribute value', () => {
@@ -244,13 +245,12 @@ describe('create-search-config', () => {
                     ]
                 });
 
-                expect(body)
-                    .to.have.property('query')
-                    .and.to.eql({
-                        term: {
-                            attr: 'foo'
-                        }
-                    });
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    term: {
+                        attr: 'foo'
+                    }
+                });
             });
 
             it('should search for multiple attribute values', () => {
@@ -267,13 +267,12 @@ describe('create-search-config', () => {
                     ]
                 });
 
-                expect(body)
-                    .to.have.property('query')
-                    .and.to.eql({
-                        terms: {
-                            attr: ['foo', 'bar']
-                        }
-                    });
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    terms: {
+                        attr: ['foo', 'bar']
+                    }
+                });
             });
         });
 
@@ -297,15 +296,14 @@ describe('create-search-config', () => {
                     ]
                 });
 
-                expect(body)
-                    .to.have.property('query')
-                    .and.to.eql({
-                        range: {
-                            attr: {
-                                [elasticSearchFilterAttr]: 1337
-                            }
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    range: {
+                        attr: {
+                            [elasticSearchFilterAttr]: 1337
                         }
-                    });
+                    }
+                });
             });
         });
 
@@ -328,13 +326,12 @@ describe('create-search-config', () => {
                 ]
             });
 
-            expect(body)
-                .to.have.property('query')
-                .and.to.eql({
-                    bool: {
-                        must: [{ ids: { values: ['133962', '133963'] } }, { range: { attr: { lte: 1 } } }]
-                    }
-                });
+            assert.ok(Object.hasOwn(body, 'query'));
+            assert.deepEqual(body.query, {
+                bool: {
+                    must: [{ ids: { values: ['133962', '133963'] } }, { range: { attr: { lte: 1 } } }]
+                }
+            });
         });
 
         it('should handle "or" filters', () => {
@@ -368,46 +365,53 @@ describe('create-search-config', () => {
                 ]
             });
 
-            expect(body)
-                .to.have.property('query')
-                .and.to.eql({
-                    bool: {
-                        should: [
-                            {
-                                bool: {
-                                    must: [{ ids: { values: ['133962', '133963'] } }, { range: { attr: { lte: 1 } } }]
-                                }
-                            },
-                            {
-                                bool: {
-                                    must: [{ ids: { values: ['133964', '133965'] } }, { range: { attr1: { gt: 1 } } }]
-                                }
+            assert.ok(Object.hasOwn(body, 'query'));
+            assert.deepEqual(body.query, {
+                bool: {
+                    should: [
+                        {
+                            bool: {
+                                must: [{ ids: { values: ['133962', '133963'] } }, { range: { attr: { lte: 1 } } }]
                             }
-                        ]
-                    }
-                });
+                        },
+                        {
+                            bool: {
+                                must: [{ ids: { values: ['133964', '133965'] } }, { range: { attr1: { gt: 1 } } }]
+                            }
+                        }
+                    ]
+                }
+            });
         });
 
         it('should throw an error for unsupported Flora operators', () => {
-            expect(() => {
-                createSearchConfig({
-                    ...floraRequest,
-                    filter: [
-                        [
-                            {
-                                attribute: 'attr',
-                                operator: 'between',
-                                value: [1, 3]
-                            }
+            assert.throws(
+                () => {
+                    createSearchConfig({
+                        ...floraRequest,
+                        filter: [
+                            [
+                                {
+                                    attribute: 'attr',
+                                    operator: 'between',
+                                    value: [1, 3]
+                                }
+                            ]
                         ]
-                    ]
-                });
-            }).to.throw(ImplementationError, `Operator "between" not implemented`);
+                    });
+                },
+                {
+                    name: 'ImplementationError',
+                    message: `Operator "between" not implemented`
+                }
+            );
         });
     });
 
     it('should request required fields only', () => {
         const search = createSearchConfig({ ...floraRequest, attributes: ['_id', 'assetClass.id'] });
-        expect(search).to.have.property('_source').and.to.eql(['_id', 'assetClass.*']);
+
+        assert.ok(Object.hasOwn(search, '_source'));
+        assert.deepEqual(search._source, ['_id', 'assetClass.*']);
     });
 });

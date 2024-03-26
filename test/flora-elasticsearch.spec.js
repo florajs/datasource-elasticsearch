@@ -1,9 +1,8 @@
 'use strict';
 
+const assert = require('node:assert/strict');
 const { errors } = require('@elastic/elasticsearch');
-const { RequestError } = require('@florajs/errors');
 
-const { expect } = require('chai');
 const Mock = require('@elastic/elasticsearch-mock');
 
 const FloraElasticsearch = require('../index');
@@ -27,11 +26,11 @@ describe('Flora Elasticsearch DataSource', () => {
         dataSource = new FloraElasticsearch(api, { node: 'http://example.com/elasticsearch' });
 
         it('should export a query function', () => {
-            expect(dataSource.process).to.be.a('function');
+            assert.ok(typeof dataSource.process === 'function');
         });
 
         it('should export a prepare function', () => {
-            expect(dataSource.prepare).to.be.a('function');
+            assert.ok(typeof dataSource.prepare === 'function');
         });
     });
 
@@ -64,7 +63,8 @@ describe('Flora Elasticsearch DataSource', () => {
             }));
 
             const { data } = await dataSource.process(floraRequest);
-            expect(data).to.eql([]);
+
+            assert.deepEqual(data, []);
         });
 
         it('should handle non-empty responses', async () => {
@@ -78,7 +78,8 @@ describe('Flora Elasticsearch DataSource', () => {
             }));
 
             const { data } = await dataSource.process(floraRequest);
-            expect(data).to.eql([
+
+            assert.deepEqual(data, [
                 { _id: 1, id: 1, name: 'Captain America' },
                 { _id: 2, id: 2, name: 'Iron Man' }
             ]);
@@ -95,7 +96,8 @@ describe('Flora Elasticsearch DataSource', () => {
             }));
 
             const { data } = await dataSource.process(floraRequest);
-            expect(data).to.eql([
+
+            assert.deepEqual(data, [
                 { _id: 1, id: 1, name: 'Captain America', 'team.id': 1 },
                 { _id: 2, id: 2, name: 'Iron Man', 'team.id': 2 }
             ]);
@@ -107,7 +109,8 @@ describe('Flora Elasticsearch DataSource', () => {
             }));
 
             const { totalCount } = await dataSource.process(floraRequest);
-            expect(totalCount).to.equal(1337);
+
+            assert.equal(totalCount, 1337);
         });
 
         describe('error handling', () => {
@@ -121,20 +124,20 @@ describe('Flora Elasticsearch DataSource', () => {
                         })
                 );
 
-                try {
-                    await dataSource.process(floraRequest);
-                } catch (e) {
-                    expect(e)
-                        .to.be.instanceof(RequestError)
-                        .and.to.have.property('message', 'ResponseError from elasticsearch.');
-                    expect(e)
-                        .to.have.property('info')
-                        .and.to.have.property('originalError')
-                        .and.to.be.instanceof(errors.ResponseError);
-                    return;
-                }
+                await assert.rejects(
+                    async () => await dataSource.process(floraRequest),
+                    (err) => {
+                        assert.equal(err.name, 'RequestError');
+                        assert.equal(err.message, 'ResponseError from elasticsearch.');
 
-                throw new Error('Expected an error');
+                        assert.ok(Object.hasOwn(err, 'info'));
+                        assert.ok(Object.hasOwn(err.info, 'originalError'));
+                        assert.ok(Object.hasOwn(err.info.originalError, 'name'));
+                        assert.equal(err.info.originalError.name, 'ResponseError');
+
+                        return true;
+                    }
+                );
             });
 
             it('should re-throw non-client errors', async () => {
@@ -143,16 +146,10 @@ describe('Flora Elasticsearch DataSource', () => {
                     () => new errors.ConnectionError('Something bad happened!')
                 );
 
-                try {
-                    await dataSource.process(floraRequest);
-                } catch (e) {
-                    expect(e)
-                        .to.be.instanceof(errors.ConnectionError)
-                        .and.to.have.property('message', 'Something bad happened!');
-                    return;
-                }
-
-                throw new Error('Expected an error');
+                await assert.rejects(async () => await dataSource.process(floraRequest), {
+                    name: 'ConnectionError',
+                    message: 'Something bad happened!'
+                });
             });
         });
     });
