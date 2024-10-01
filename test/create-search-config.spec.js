@@ -275,6 +275,34 @@ describe('create-search-config', () => {
                     }
                 });
             });
+
+            it('should correctly intersect ids filters', () => {
+                const { body } = createSearchConfig({
+                    ...floraRequest,
+                    filter: [
+                        [
+                            {
+                                attribute: '_id',
+                                operator: 'equal',
+                                valueFromSubFilter: 0,
+                                value: ['1', '2']
+                            },
+                            {
+                                attribute: '_id',
+                                operator: 'equal',
+                                value: '2'
+                            }
+                        ]
+                    ]
+                });
+
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    ids: {
+                        values: ['2']
+                    }
+                });
+            });
         });
 
         Object.entries({
