@@ -4,7 +4,14 @@
   "description": "Elasticsearch connection for Flora",
   "main": "index.js",
   "scripts": {
-    "test": "eslint . && node --test test/*",
+    "test": "npm run test:unit && npm run test:integration",
+    "test:unit": "eslint . && node --test test/unit/*.spec.js",
+    "test:integration": "export ES_URL=\"http://${ES_HOST:-localhost}:${ES_PORT:-9200}\"; npm run _test:integration:cleanup; npm run _test:integration:start && npm run _test:integration:wait; status=$?; npm run _test:integration:stop; exit $status",
+    "_test:integration:start": "docker run -d --name flora-es-instance -e discovery.type=single-node -e xpack.security.enabled=false -e ingest.geoip.downloader.enabled=false -e ES_JAVA_OPTS=\"-Xms128m -Xmx128m\" --mount type=tmpfs,destination=/usr/share/elasticsearch/data,tmpfs-size=128m -p ${ES_PORT:-9200}:9200 docker.elastic.co/elasticsearch/elasticsearch:${ES_VERSION:-7.17.28}",
+    "_test:integration:wait": "node test/integration/wait-for-es.js --url \"$ES_URL\" && npm run _test:integration:run",
+    "_test:integration:run": "node --test test/integration/*.spec.js",
+    "_test:integration:stop": "docker stop flora-es-instance",
+    "_test:integration:cleanup": "docker rm --force flora-es-instance",
     "lint": "eslint .",
     "format": "npx prettier --write lib/* test/*"
   },
@@ -40,7 +47,6 @@
     "@florajs/errors": "^4.0.0"
   },
   "devDependencies": {
-    "@elastic/elasticsearch-mock": "^1.0.0",
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
