@@ -2,7 +2,7 @@
 
 const { describe, it } = require('node:test');
 const assert = require('node:assert/strict');
-const createSearchConfig = require('../lib/create-search-config');
+const createSearchConfig = require('../../lib/create-search-config');
 
 describe('create-search-config', () => {
     const floraRequest = { esindex: 'fund', attributes: ['_id'] };
@@ -15,18 +15,25 @@ describe('create-search-config', () => {
             assert.equal(search.body.size, 10);
         });
 
-        it('should set fallback if limit is not set', () => {
-            const search = createSearchConfig(floraRequest);
-
-            assert.ok(Object.hasOwn(search.body, 'size'));
-            assert.equal(search.body.size, 1000000);
+        it('should throw an error for unlimited limit', () => {
+            assert.throws(() => createSearchConfig({ ...floraRequest, limit: 'unlimited' }), {
+                name: 'RequestError',
+                message: '"limit" must not exceed 10000'
+            });
         });
 
-        it('should handle unlimited limit', () => {
-            const search = createSearchConfig({ ...floraRequest, limit: 'unlimited' });
+        it('should throw an error if limit exceeds 10000', () => {
+            assert.throws(() => createSearchConfig({ ...floraRequest, limit: 10001 }), {
+                name: 'RequestError',
+                message: '"limit" must not exceed 10000'
+            });
+        });
+
+        it('should allow a limit of exactly 10000', () => {
+            const search = createSearchConfig({ ...floraRequest, limit: 10000 });
 
             assert.ok(Object.hasOwn(search.body, 'size'));
-            assert.equal(search.body.size, 1000000);
+            assert.equal(search.body.size, 10000);
         });
     });
 
