@@ -45,14 +45,10 @@ describe('create-search-config', () => {
     });
 
     describe('search', () => {
-        it('should handle search terms', () => {
-            const { body } = createSearchConfig({ ...floraRequest, search: 'foo' });
-
-            assert.ok(Object.hasOwn(body.query, 'multi_match'));
-            assert.deepEqual(body.query.multi_match, {
-                type: 'phrase_prefix',
-                query: 'foo',
-                fields: ['_all']
+        it('should throw an error when "boost" is not configured', () => {
+            assert.throws(() => createSearchConfig({ ...floraRequest, search: 'foo' }), {
+                name: 'ImplementationError',
+                message: '"boost" query option is required for full-text search'
             });
         });
 
@@ -73,11 +69,12 @@ describe('create-search-config', () => {
         });
 
         it('should handle search field_value_factor query option', () => {
+            const boost = ['name'];
             const field_value_factor = { field: 'searchPriority', modifier: 'log1p' };
             const { body } = createSearchConfig({
                 ...floraRequest,
                 search: 'foo',
-                queryOptions: { field_value_factor }
+                queryOptions: { boost, field_value_factor }
             });
 
             assert.ok(Object.hasOwn(body.query, 'function_score'));
@@ -86,7 +83,7 @@ describe('create-search-config', () => {
                     multi_match: {
                         type: 'phrase_prefix',
                         query: 'foo',
-                        fields: ['_all']
+                        fields: boost
                     }
                 },
                 field_value_factor
