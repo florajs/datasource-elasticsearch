@@ -340,6 +340,33 @@ describe('create-search-config', () => {
             });
         });
 
+        it('should merge multiple range operators on the same attribute', () => {
+            const { body } = createSearchConfig({
+                ...floraRequest,
+                filter: [
+                    [
+                        {
+                            attribute: 'attr',
+                            operator: 'greater',
+                            value: 1
+                        },
+                        {
+                            attribute: 'attr',
+                            operator: 'less',
+                            value: 10
+                        }
+                    ]
+                ]
+            });
+
+            assert.ok(Object.hasOwn(body, 'query'));
+            assert.deepEqual(body.query, {
+                range: {
+                    attr: { gt: 1, lt: 10 }
+                }
+            });
+        });
+
         it('should handle "and" filters', () => {
             const { body } = createSearchConfig({
                 ...floraRequest,
