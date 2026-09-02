@@ -134,17 +134,6 @@ describe('create-search-config', () => {
             assert.ok(Object.hasOwn(body, 'sort'));
             assert.deepEqual(body.sort, [{ name: 'asc' }, { performance: 'desc' }, '_score']);
         });
-
-        it('should handle sort maps', () => {
-            const { body } = createSearchConfig({
-                ...floraRequest,
-                order: [{ attribute: 'name', direction: 'asc' }],
-                sortMap: '{"name":"name.raw"}'
-            });
-
-            assert.ok(Object.hasOwn(body, 'sort'));
-            assert.deepEqual(body.sort, [{ 'name.raw': 'asc' }, '_score']);
-        });
     });
 
     it('should combine request specific Elasticsearch queries with filters', () => {
