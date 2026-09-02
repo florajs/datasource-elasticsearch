@@ -15,7 +15,7 @@
     "lint": "eslint .",
     "format": "npx prettier --write lib/* test/*"
   },
-  "pre-commit": "test",
+  "pre-commit": "test:unit",
   "author": {
     "name": "stock3 AG",
     "email": "it@stock3.com"
