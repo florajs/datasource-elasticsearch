@@ -13,9 +13,9 @@
     "_test:integration:stop": "docker stop flora-es-instance",
     "_test:integration:cleanup": "docker rm --force flora-es-instance",
     "lint": "eslint .",
-    "format": "npx prettier --write lib/* test/*"
+    "format": "npx prettier --write lib/* test/*",
+    "prepare": "git config core.hooksPath .githooks"
   },
-  "pre-commit": "test:unit",
   "author": {
     "name": "stock3 AG",
     "email": "it@stock3.com"
@@ -50,7 +50,6 @@
     "eslint": "^8.57.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.1.3",
-    "pre-commit": "^1.2.2",
     "prettier": "^3.2.5"
   }
 }
