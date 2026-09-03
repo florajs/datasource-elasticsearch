@@ -1,5 +1,6 @@
 'use strict';
 
+const http = require('node:http');
 const { describe, it, before, beforeEach, after } = require('node:test');
 const assert = require('node:assert/strict');
 
@@ -63,6 +64,35 @@ describe(
                     return true;
                 }
             );
+        });
+
+        it('rejects when Elasticsearch does not respond within the configured timeout', async (ctx) => {
+            // accepts the connection but never responds, so the DataSource's request timeout fires
+            const server = http.createServer((req, res) => {
+                req.on('error', () => {});
+                res.on('error', () => {});
+            });
+            await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+            ctx.after(
+                () =>
+                    new Promise((resolve) => {
+                        server.closeAllConnections();
+                        server.close(resolve);
+                    })
+            );
+
+            const serverUrl = `http://127.0.0.1:${server.address().port}`;
+            const slowDataSource = new FloraElasticsearch(api, { node: serverUrl, timeout: 50 });
+
+            const start = performance.now();
+            await assert.rejects(() => slowDataSource.process({ esindex: INDEX, attributes: ['_id'] }), {
+                name: 'TimeoutError'
+            });
+            const elapsedMs = performance.now() - start;
+
+            // proves the configured 50ms "timeout" was applied, not the default or some other value
+            assert.ok(elapsedMs >= 50, `expected to time out no earlier than the configured 50ms, took ${elapsedMs}ms`);
+            assert.ok(elapsedMs < 500, `expected to time out well before the 10s default, took ${elapsedMs}ms`);
         });
 
         it('caps the number of returned documents at the given limit', async () => {
