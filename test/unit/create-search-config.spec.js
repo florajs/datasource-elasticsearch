@@ -298,6 +298,128 @@ describe('create-search-config', () => {
             });
         });
 
+        describe('notEqual', () => {
+            it('should exclude a single attribute value', () => {
+                const { body } = createSearchConfig({
+                    ...floraRequest,
+                    filter: [
+                        [
+                            {
+                                attribute: 'attr',
+                                operator: 'notEqual',
+                                value: 'foo'
+                            }
+                        ]
+                    ]
+                });
+
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    bool: {
+                        must_not: [{ term: { attr: 'foo' } }]
+                    }
+                });
+            });
+
+            it('should exclude multiple attribute values', () => {
+                const { body } = createSearchConfig({
+                    ...floraRequest,
+                    filter: [
+                        [
+                            {
+                                attribute: 'attr',
+                                operator: 'notEqual',
+                                value: ['foo', 'bar']
+                            }
+                        ]
+                    ]
+                });
+
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    bool: {
+                        must_not: [{ terms: { attr: ['foo', 'bar'] } }]
+                    }
+                });
+            });
+
+            it('should use ids filter to exclude ids', () => {
+                const { body } = createSearchConfig({
+                    ...floraRequest,
+                    filter: [
+                        [
+                            {
+                                attribute: '_id',
+                                operator: 'notEqual',
+                                value: '119315'
+                            }
+                        ]
+                    ]
+                });
+
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    bool: {
+                        must_not: [{ ids: { values: ['119315'] } }]
+                    }
+                });
+            });
+
+            it('should combine multiple notEqual filters on the same attribute', () => {
+                const { body } = createSearchConfig({
+                    ...floraRequest,
+                    filter: [
+                        [
+                            {
+                                attribute: 'attr',
+                                operator: 'notEqual',
+                                value: 'foo'
+                            },
+                            {
+                                attribute: 'attr',
+                                operator: 'notEqual',
+                                value: 'bar'
+                            }
+                        ]
+                    ]
+                });
+
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    bool: {
+                        must_not: [{ term: { attr: 'foo' } }, { term: { attr: 'bar' } }]
+                    }
+                });
+            });
+
+            it('should combine notEqual with other filters on the same attribute', () => {
+                const { body } = createSearchConfig({
+                    ...floraRequest,
+                    filter: [
+                        [
+                            {
+                                attribute: 'attr',
+                                operator: 'notEqual',
+                                value: 1337
+                            },
+                            {
+                                attribute: 'attr',
+                                operator: 'equal',
+                                value: [1337, 4711]
+                            }
+                        ]
+                    ]
+                });
+
+                assert.ok(Object.hasOwn(body, 'query'));
+                assert.deepEqual(body.query, {
+                    bool: {
+                        must: [{ terms: { attr: [1337, 4711] } }, { bool: { must_not: [{ term: { attr: 1337 } }] } }]
+                    }
+                });
+            });
+        });
+
         Object.entries({
             greater: 'gt',
             greaterOrEqual: 'gte',
