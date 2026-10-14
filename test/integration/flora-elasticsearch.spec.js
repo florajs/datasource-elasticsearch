@@ -107,6 +107,45 @@ describe(
                 Object.entries({
                     'equal (single)': { operator: 'equal', value: 2, expected: ['Iron Man'] },
                     'equal (multiple)': { operator: 'equal', value: [1, 2], expected: ['Captain America', 'Iron Man'] },
+                    'notEqual (single)': {
+                        operator: 'notEqual',
+                        value: 2,
+                        expected: [
+                            'Black Widow',
+                            'Captain America',
+                            'Cyclops',
+                            'Gamora',
+                            'Hawkeye',
+                            'Human Torch',
+                            'Invisible Woman',
+                            'Magneto',
+                            'Mister Fantastic',
+                            'Rocket Raccoon',
+                            'Star-Lord',
+                            'Storm',
+                            'Thor',
+                            'Wolverine'
+                        ]
+                    },
+                    'notEqual (multiple)': {
+                        operator: 'notEqual',
+                        value: [1, 2],
+                        expected: [
+                            'Black Widow',
+                            'Cyclops',
+                            'Gamora',
+                            'Hawkeye',
+                            'Human Torch',
+                            'Invisible Woman',
+                            'Magneto',
+                            'Mister Fantastic',
+                            'Rocket Raccoon',
+                            'Star-Lord',
+                            'Storm',
+                            'Thor',
+                            'Wolverine'
+                        ]
+                    },
                     greater: { operator: 'greater', value: 13, expected: ['Gamora', 'Rocket Raccoon'] },
                     greaterOrEqual: {
                         operator: 'greaterOrEqual',
@@ -124,7 +163,8 @@ describe(
                         const { data } = await dataSource.process({
                             esindex: INDEX,
                             attributes: ['_id', 'name'],
-                            filter: [[{ attribute: 'id', operator, value }]]
+                            filter: [[{ attribute: 'id', operator, value }]],
+                            limit: DOCUMENT_COUNT
                         });
 
                         const names = data.map((doc) => doc.name).sort();
